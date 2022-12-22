@@ -1,6 +1,13 @@
 # PieBot
 高性能go-cqhttp的python开发模板
 
+# 开始
+- need python >= 3.8
+- install requirements.txt
+    ```bash
+    pip install -r requirements.txt
+    ```
+
 # 使用方法
 ```python
 import import bot
