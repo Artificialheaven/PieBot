@@ -1,5 +1,6 @@
 # 存一些类用
 import time
+import os
 
 
 class logger:
@@ -9,6 +10,8 @@ class logger:
     level = 'info'
 
     def __init__(self, file=None, level='info'):
+        if not os.path.isdir('./log'):
+            os.mkdir('./log')
         if file:
             self.file = file
         self.level = level
