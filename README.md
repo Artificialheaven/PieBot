@@ -31,3 +31,40 @@ def say_hello(message: Message):
 Bot.run()
 # 启动websocket连接至go-cqhttp
 ```
+
+# 点歌的例子
+
+需要先运行下述命令，才可以运行本点歌例子。
+'''bash
+pip install -r requirements.txt
+pip install requests
+'''
+
+main.py
+'''python
+import re, requests, json, traceback
+import urllib.parse
+
+import bot
+from obj import Message, group_info, friend_info
+
+Bot = bot.Bot('ws://127.0.0.1:6700')    # 这里写 正向Websocket 地址
+reg = Bot.reg                           # 这是用来简化装饰器的
+
+
+@reg.register('''点歌 (.*)''')
+def diange_(message: Message):
+    song = re.match('''点歌 (.*)''', message.message).group(1)
+    ret = requests.get(f'http://cloud-music.pl-fe.cn/search?keywords={urllib.parse.quote(song).encode()}&limit=1').text
+    data = json.loads(ret)
+    try:
+        id = data['result']['songs'][0]['id']
+        message.reply(f'[CQ:music,type=163,id={id}]')
+    except KeyError as e:
+        message.reply('坏了，没找到歌曲。')
+    except (Exception, BaseException) as e:
+        print(traceback.format_exc())
+
+
+Bot.run()
+'''
