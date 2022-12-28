@@ -10,8 +10,8 @@ class logger:
     level = 'info'
 
     def __init__(self, file=None, level='info'):
-        if not os.path.isdir('./log'):
-            os.mkdir('./log')
+        if not os.path.isdir('../Bot/log'):
+            os.mkdir('../Bot/log')
         if file:
             self.file = file
         self.level = level
@@ -140,11 +140,13 @@ class Message:
                  raw_message='message',
                  font=0,
                  temp_source=0,
-                 sender: sender = None
+                 sender=None,
+                 reply=None
                  ):
         self.sender = sender
         self.send_time = send_time
         self.self_id = self_id
+        self.group_id = group_id
         self.message_type = message_type
         self.sub_type = sub_type
         self.message_id = message_id
@@ -153,6 +155,13 @@ class Message:
         self.raw_message = raw_message
         self.font = font
         self.temp_source = temp_source
+        self._reply = reply
+
+    def reply(self, message):
+        if self.message_type == 'private':
+            return self._reply(self.user_id, message)
+        else:
+            return self._reply(self.group_id, message)
 
 
 class Notice:
@@ -179,56 +188,54 @@ class Notice:
     flag = 'flag'  # 请求 flag, 在调用处理请求的 API 时需要传入
 
     def __init__(self,
-                 js,  # 原始json
-                 send_time=1672502400,  # 操作时间戳
-                 group_id=100001,  # 统一来源群ID
-                 self_id=10001,  # 统一机器人ID
+                 js,
+                 send_time=1672502400,
+                 group_id=100001,
+                 self_id=10001,
                  notice_type='None',
                  sub_type='None',
-                 operator_id=10002,  # 统一操作者ID
-                 user_id=10001,  # 统一被操作者ID
-                 message_id=0,  # 撤回消息ID
-                 # file = file(),             # file对象
+                 operator_id=10002,
+                 user_id=10001,
+                 message_id=0,
                  duration=1,
-                 sender_id=10002,  # 原则上与operator_id一致
-                 target_id=10001,  # 原则上与user_id一致
-                 honor_type='talkative',  # 荣誉称号，龙王之类的
-                 title='Title',  # 群头衔
-                 card_old='card_old',  # 原群名片
-                 card_new='card_new',  # 新群名片
-                 # client = Device(),     # 客户端信息
+                 sender_id=10002,
+                 target_id=10001,
+                 honor_type='talkative',
+                 title='Title',
+                 card_old='card_old',
+                 card_new='card_new',
                  online=True,
-                 comment='comment',  # 验证消息
-                 flag='flag'  # 请求 flag, 在调用处理请求的 API 时需要传入
+                 comment='comment',
+                 flag='flag'
                  ):
         self.js = js
-        self.send_time = send_time  # 操作时间戳
-        self.group_id = group_id  # 统一来源群ID
-        self.self_id = self_id  # 统一机器人ID
+        self.send_time = send_time
+        self.group_id = group_id
+        self.self_id = self_id
         self.notice_type = notice_type
         self.sub_type = sub_type
-        self.operator_id = operator_id  # 统一操作者ID
-        self.user_id = user_id  # 统一被操作者ID
-        self.message_id = message_id  # 撤回消息ID
+        self.operator_id = operator_id
+        self.user_id = user_id
+        self.message_id = message_id
         if sub_type == 'group_upload':
             self.file = file(id=js['file']['id'], name=js['file']['name'], size=js['file']['size'],
-                             busid=js['file']['busid'])             # file对象
+                             busid=js['file']['busid'])
         if sub_type == 'offline_file':
             self.file = file(id=js['file']['id'], name=js['file']['name'], size=js['file']['size'],
-                             url=js['file']['url'])  # file对象
+                             url=js['file']['url'])
         self.duration = duration
-        self.sender_id = sender_id  # 原则上与operator_id一致
-        self.target_id = target_id  # 原则上与user_id一致
-        self.honor_type = honor_type  # 荣誉称号，龙王之类的
-        self.title = title  # 群头衔
-        self.card_old = card_old  # 原群名片
-        self.card_new = card_new  # 新群名片
+        self.sender_id = sender_id
+        self.target_id = target_id
+        self.honor_type = honor_type
+        self.title = title
+        self.card_old = card_old
+        self.card_new = card_new
         if sub_type == 'client_status':
             self.client = Device(appid=js['client'], device_kind=js['client']['device_kind'],
-                                 device_name=js['client']['device_name'])     # 客户端信息
+                                 device_name=js['client']['device_name'])
             self.online = online
-        self.comment = comment  # 验证消息
-        self.flag = flag  # 请求 flag, 在调用处理请求的 API 时需要传入
+        self.comment = comment
+        self.flag = flag
 
 
 class Device:
@@ -261,3 +268,44 @@ class file:
         self.size = size
         self.busid = busid
         self.url = url
+
+
+class Request:
+    user_id = 10001
+    group_id = 100001
+    sub_type = 'unknown'
+    comment = 'comment'
+    flag = 'flag'
+    n_type = 'friend'
+
+    def __init__(self,
+                 user_id=10001,
+                 group_id=100001,
+                 sub_type='unknown',
+                 comment='comment',
+                 flag='flag',
+                 reply=None,
+                 n_type='friend'
+                 ):
+        self.user_id = user_id
+        self.group_id = group_id
+        self.sub_type = sub_type
+        self.comment = comment
+        self.flag = flag
+        self._reply = reply
+        self.n_type = n_type
+
+    def reply(self, approve: bool, remark="", reason=""):
+        """
+        快速处理request
+        :param remark: 如果是好友申请，在同意时可以备注好友
+        :param reason: 如果拒绝群申请，这里为拒绝原因，默认空
+        :param approve: 是否通过/允许
+        :return:
+        """
+        if self.n_type == 'friend':
+            self._reply(self.flag, approve, remark=remark)
+        elif self.n_type == 'group':
+            self._reply(self.flag, self.sub_type, approve, reason=reason)
+
+
