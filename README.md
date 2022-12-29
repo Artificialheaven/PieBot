@@ -1,5 +1,6 @@
 # PieBot
 高性能go-cqhttp的python开发模板
+[PieBot](https://moeiris.asia/piebot/)
 
 # 开始
 - need python >= 3.8
