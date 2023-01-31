@@ -12,7 +12,7 @@
 
 # 使用方法
 ```python
-import import bot
+import bot
 from obj import Message, group_info, friend_info
 # 导入必要库
 ```
